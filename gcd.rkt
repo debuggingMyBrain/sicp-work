@@ -1,5 +1,5 @@
 #!/usr/bin/racket
-#lang racket/base
+; #lang racket/base
 
 
 (define (gcd a b)
@@ -155,3 +155,7 @@
 
 ;  1.28
 ;  hmm
+
+
+
+(provide (all-defined-out))
