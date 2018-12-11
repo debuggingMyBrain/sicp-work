@@ -120,7 +120,14 @@
     (else (+ (pascal-row-col (- row 1) (- col 1)) (pascal-row-col (- row 1) col)))
    )
 )
-
+(define (pascal num-rows)
+  (define (pascal-inner row col)
+    (cond 
+      ((> row num-rows) 0)
+      ((> col row) ((newline)(pascal-inner (+ 1 row) 0)))
+      (else ((display (pascal-row-col row col)) (display "|") (pascal-inner row (+ 1 col))))))
+  (pascal-inner 0 0)
+)
 
 ;  1.16
 (define (fast-exp b n)
