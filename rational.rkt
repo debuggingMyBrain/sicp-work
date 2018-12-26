@@ -101,3 +101,73 @@
 (define (get-left-line-2 rect) (make-segment (start-segment (car rect)) (start-segment (cdr rect))))
 ;  etc
 
+; 2.4
+(define (cons2 x y) (lambda (m) (m x y)))  ; this returns a function which takes a function and applies it to x and y
+(define (car2 z) (z (lambda (p q) p))) ; this passes z a function which, given 2 things, returns the first
+
+(define (cdr2 z) (z (lambda (p q) q)))
+; (car2 (cons2 1 2)) -> (car2 (lambda (m) (m 1 2))) => ((lambda (m) (m 1 2)) (lambda (p q) (p))) => (lambda ( 1 2) -> 2)
+
+; 2.5
+; 2^a * 3^b
+; this will work because 2 and 3 are primes.  All prime factorizations are unique, so no other pair a,b could ever return this product
+(define (cons3 a b) (* (expt 2 a) (expt 3 b)))
+; ex car3 (cons 2 3) => car3(2^2 * 3^ 3) = car3(108)
+; inner(108 1) -> (inner 54 2) -> (inner 27 3) -> 2
+(define (car3 m) ; how many factors of 2 are there
+	(define (inner m n)
+		(if (= 0 (remainder m 2)) (inner (/ m 2) (+ 1 n)) (- n 1)))
+	(inner m 1))
+(define (cdr3 m)
+	(define (inner m n)
+		(if (= 0 (remainder m 3)) (inner (/ m 3) (+ 1 n)) (- n 1)))
+	(inner m 1))
+
+
+
+; 2.6
+; (define fzero (lambda (f) (lambda (x) x)))
+; ; zero is a function that takes one argument and returns a function that takes one argument and returns it - it doesn't invoke the outer function
+; (define (add-1 n)
+; 	(lambda (f) (lambda (x) (f ((n f) x)))))
+; ; add one takes a function and returns a function that calls that function an extra time?
+
+; (add-1 zero) 
+; ->
+; (lambda (f) (lambda (x) (f ((zero f) x))))
+; ; take a function f that returns a function that
+; ; takes a function x that calls f on the result of calling (zero on f and then calling that on x)
+; ->
+; (lambda (f) (lambda (x) (f (lambda (x') x') x)))
+; -> (lambda (f) (lambda (x) (f x)))
+
+; ; so one: takes a function that returns a function that takes an argument and then applies the outer function to that argument _one_ time
+; ; and 0 takes a function that retuns a function that takes an argument and applies the outer funcion to the argument 0 times
+; ;  two would do it two times
+; -> two = lambda f: lambda x: f(f(x))
+
+; with a lot of help from
+; http://www.billthelizard.com/2010/10/sicp-26-church-numerals.html
+
+
+; 2.7
+(define (make-interval a b) (cons a b))
+(define (upper-bound interval) (cdr interval))
+(define (lower-bound interval) (car interval))
+; 2.8
+(define (sub-interval x y)
+	;  consider (1, 3) - (2, 4), which should be (-3, 1)
+	; and (2, 4) - (1, 3), which should be (-1, 3)
+	;  so its always (1st one small - 2nd one big, 1st one big, 2nd one smalle
+	(make-interval (- (lower-bound x) (upper-bound y)) (- (upper-bound x) (lower-bound y))))
+
+; it is known that uncertainty of addition is the sum of uncertainties, whereas multiplication its the sum of the relative uncertainties
+; ex (1+/-1) + (2+/-1)
+; => (1,5) = 3+/-2 <=> (3 +/- 2)  2 == 1 + 1
+
+; (2 +/- 1) * (3 +/- 1) = 
+; (1, 3) * (2, 4) = (2, 12) = (7 +/5)
+; (2 +/- 1) * (4 +/- 1)
+; (1, 3) * (3, 5) = (3, 15) = (9 +/- 6)
+; all intervals had widths of 1, but the answers have different widths
+
