@@ -149,9 +149,22 @@
 ; with a lot of help from
 ; http://www.billthelizard.com/2010/10/sicp-26-church-numerals.html
 
+(define (add-interval x y)
+	(make-interval (+ (lower-bound x) (lower-bound y))
+		(+ (upper-bound x) (upper-bound y))))
+(define (mul-interval x y)
+	(let ((p1 (* (lower-bound x) (lower-bound y)))
+			(p2 (* (lower-bound x) (upper-bound y)))
+			(p3 (* (upper-bound x) (lower-bound y)))
+			(p4 (* (upper-bound x) (upper-bound y))))
+		(make-interval (min p1 p2 p3 p4)
+						(max p1 p2 p3 p4))))
+; modified in 2.10
+; (define (div-interval x y)
+; 	(mul-interval x (make-interval (/ 1.0 (upper-bound y)) (/ 1.0 (lower-bound y)))))
 
-; 2.7
 (define (make-interval a b) (cons a b))
+; 2.7
 (define (upper-bound interval) (cdr interval))
 (define (lower-bound interval) (car interval))
 ; 2.8
@@ -160,7 +173,7 @@
 	; and (2, 4) - (1, 3), which should be (-1, 3)
 	;  so its always (1st one small - 2nd one big, 1st one big, 2nd one smalle
 	(make-interval (- (lower-bound x) (upper-bound y)) (- (upper-bound x) (lower-bound y))))
-
+; 2.9
 ; it is known that uncertainty of addition is the sum of uncertainties, whereas multiplication its the sum of the relative uncertainties
 ; ex (1+/-1) + (2+/-1)
 ; => (1,5) = 3+/-2 <=> (3 +/- 2)  2 == 1 + 1
@@ -170,4 +183,54 @@
 ; (2 +/- 1) * (4 +/- 1)
 ; (1, 3) * (3, 5) = (3, 15) = (9 +/- 6)
 ; all intervals had widths of 1, but the answers have different widths
+
+; 2.10
+(define (div-interval x y)
+	(if 
+		(and (< (lower-bound y) 0) (> (upper-bound y) 0))
+		(display "Divisor must not span 0")
+		(mul-interval
+			x 
+			(make-interval (/ 1.0 (upper-bound y)) (/ 1.0 (lower-bound y)))
+		)))
+; 2.11
+; im going to ignore that first commnet, Ben
+(define (make-center-width c w)
+	(make-interval (- c w) (+ c w)))
+(define (center i) (/ (+ (lower-bound i) (upper-bound i)) 2))
+(define (width i) (/ (- (upper-bound i) (lower-bound i)) 2))
+; 2.12
+(define (make-center-percent c p)
+	(let ((width (* c p)))
+		(make-center-width c width)))
+(define (percent i)
+	(let ((w (width i))
+			(c (center i)))
+		(/ w c)))
+; 2.13
+; They add
+
+; 2.14
+(define A (make-center-percent 10 .001))
+(define B (make-center-percent 11 .001))
+(define (par1 r1 r2)
+	(div-interval (mul-interval r1 r2) (add-interval r1 r2)))
+(define (par2 r1 r2)
+	(let ((one (make-interval 1 1)))
+		(div-interval one (add-interval (div-interval one r1) (div-interval one r2)))))
+; indeed (par1 A B) != (par2 A B)
+
+; 2.15
+; https://en.wikipedia.org/wiki/Interval_arithmetic#Dependency_problem
+; ¯\_(ツ)_/¯
+
+
+
+
+
+
+
+
+
+
 
