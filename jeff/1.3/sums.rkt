@@ -66,6 +66,7 @@
 (define (identity i) i)
 (define (sum-cubes a b)
     (sum cube a inc b))
+
 ; Obvious potential here for a function which returns an incrementer function.
 ; I assume we're not quite there yet in the text.
 (define (pi-inc x) (+ x 4))
@@ -92,25 +93,38 @@
 (newline)
 
 ; Exercise 1.29
-; This is Simpson's Rule. Interestingly,
-; (integral) seems to approach cube *from below*;
-; (simpsons) seems to approach cube *from above*.
-; I think that makes sense since Simpson's uses a quadratic function
-; as its approximation over the h-interval, and cube is convex.
-; (I ... think?)
-; Also, (simpsons) looks less accurate which I don't expect.
+; This is Simpson's Rule.
+; I cribbed this from Danny, straight up -- I'm speechless.
+; Let me convince myself it's true:
+;   h/3 * (
+;       f(a + 0h)
+;           + 4f(a + 1h) + 2f(a + 2h)
+;           + 4f(a + 3h) + 2f(a + 4h)
+;           + ...
+;           + 4f(a + (n - 1)h) +
+;       f(a + nh))
+; First, recognize:
+;   f(a + 0h) = f(a)
+;   f(a + nh) = f(a + b - a) = f(b)
+; Then, by associativity:
+;   h/3 * (
+;       f(a) + f(b)
+;            + 4 * (f(a + 1h) + f(a + 3h) + ... + f(a + (n - 1)h))
+;            + 2 * (f(a + 2h) + f(a + 4h) + ... + f(a + (n - 2)h)))
+; So we can take two-h steps in the ranges:
+;       4 * sum[a + 1h : b - 1h : 2h]
+;       2 * sum[a + 2h : b - 2h : 2h]
+; Wow!
 (define (simpsons f a b n)
     (define h (/ (- b a) n))
-    (define (simpsons-next x) (+ x 1))
-    (define (simpsons-term x)
-        (define (simpsons-constant)
-            (cond
-                ((= x a) 1.0)
-                ((= x b) 1.0)
-                ((even? x) 2.0)
-                (else 4.0)))
-        (* (simpsons-constant) (f (+ a (* x h)))))
-    (* (/ h 3) (sum simpsons-term 0 simpsons-next n)))
+    (define (two-h x) (+ x h h))
+    (*
+        (/ h 3)
+        (+
+            (f a)
+            (f b)
+            (* 4 (sum f (+ a h) two-h (- b h)))
+            (* 2 (sum f (+ a h h) two-h (- b h h))))))
 
 (display "SIMPSONS:")
 (newline)
