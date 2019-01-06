@@ -112,20 +112,54 @@
 
 (define (balanced? mobile)
 	(let (
-			(lb (left-branch mobile))
-			(rb (right-branch mobile))
-			(lbw (if (pair? (branch-structure lb)) (total-weight lb) (branch-structure lb)))
-			(rbw (if (pair? (branch-structure rb)) (total-weight rb) (branch-structure rb)))
-		)
-		(= (* (branch-length lb) lbw) (* (branch-length rb) rbw))))
+			[lb (left-branch mobile)]
+			[rb (right-branch mobile)])
+		(let (
+			[lbw (if (pair? (branch-structure lb)) (total-weight lb) (branch-structure lb))]
+			[rbw (if (pair? (branch-structure rb)) (total-weight rb) (branch-structure rb))])
+			(= (* (branch-length lb) lbw) (* (branch-length rb) rbw)))))
 
 ; d) we'd just have to change the accessors to be a little more careful
 
+; 2.30
+(define (square-tree1 tree)
+	(map (lambda (sub-tree)
+		(if (pair? sub-tree)
+			(square-tree1 sub-tree)
+			(square sub-tree)))
+	tree))
 
+; not right, leaves extra null elements
+(define (square-tree2 tree)
+	(cond 
+		((null? tree) null)
+		((pair? (car tree))
+				(append (square-tree2 (car tree)) (square-tree2 (cdr tree))))
+		(else (list (square (car tree)) (square-tree2 (cdr tree))))))
+; 2.31
+(define (tree-map func tree)
+	(map (lambda (sub-tree)
+		(if (pair? sub-tree)
+			(tree-map func sub-tree)
+			(func sub-tree)))
+	tree))
+(define (square-tree3 tree) (tree-map square tree))
 
+; 2.32
+(define (subsets s)
+	(if (null? s)
+		(list null)
+		(let ((rest_ (subsets (cdr s))))
+			(append rest_ (map 
+				(lambda (a-list) (cons (car s) a-list))
+				rest_)))))
 
-
-
-
-
+; if the given list is 1 element A (then the answer is (null, A), return a list that is:
+; 	null
+; 	that element + null == that element
+; if the given list is 2 elements A B (then the answer is null, A, B, A B), return a list that is:
+; 	the subsets of the tail, ie (null, B)
+; 	and then each of those elements together with A, so
+; 	null + A, B + A => null, A, B, A+B
+; etc
 
